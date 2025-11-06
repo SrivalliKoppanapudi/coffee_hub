@@ -1,0 +1,139 @@
+{
+  "info": {
+    "name": "CoffeeHub API",
+    "_postman_id": "coffeehub-jwt-rbac",
+    "description": "Postman collection for CoffeeHub Milestone 1 (Users + RBAC + Bookings)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/create",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"123456\",\n  \"role\": \"CUSTOMER\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Login User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"123456\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Get My Profile",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{jwtToken}}" }],
+        "url": "{{baseUrl}}/api/customers/me"
+      }
+    },
+    {
+      "name": "Update My Profile",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/api/customers/me",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Alice\",\n  \"lastName\": \"Johnson\",\n  \"contactNumber\": \"9876543210\",\n  \"email\": \"alice@example.com\",\n  \"address\": \"123 Coffee Street\",\n  \"loyaltyPoints\": 10,\n  \"preferredTable\": 2\n}"
+        }
+      }
+    },
+    {
+      "name": "List All Tables (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{jwtToken}}" }],
+        "url": "{{baseUrl}}/api/tables"
+      }
+    },
+    {
+      "name": "Create Table (Admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/api/tables",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tableNumber\": 5,\n  \"seatingCapacity\": 4,\n  \"locationZone\": \"Garden\",\n  \"isAvailable\": true,\n  \"tableType\": \"VIP\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Seed Tables (Admin)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{jwtToken}}" }],
+        "url": "{{baseUrl}}/api/tables/seed"
+      }
+    },
+    {
+      "name": "Check Availability",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{jwtToken}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings/availability?start=2025-09-01T18:00:00&end=2025-09-01T20:00:00",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings", "availability"],
+          "query": [
+            { "key": "start", "value": "2025-09-01T18:00:00" },
+            { "key": "end", "value": "2025-09-01T20:00:00" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/api/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tableId\": 1,\n  \"bookingDatetime\": \"2025-09-01T18:00:00\",\n  \"durationHours\": 2,\n  \"partySize\": 3,\n  \"specialRequests\": \"Window seat\",\n  \"bookingFee\": 100.00\n}"
+        }
+      }
+    },
+    {
+      "name": "Get My Bookings",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{jwtToken}}" }],
+        "url": "{{baseUrl}}/api/bookings/me"
+      }
+    },
+    {
+      "name": "Cancel Booking",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{jwtToken}}" }],
+        "url": "{{baseUrl}}/api/bookings/1/cancel"
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "jwtToken", "value": "" }
+  ]
+}
