@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final FoodOrderRepository orderRepository;
-    private final com.javabite.code.coffeehub.repository.OrderItemRepository orderItemRepository;
+    private final com.javabite.code.coffeehub.repo.OrderItemRepository orderItemRepository;
     private final MenuItemRepository menuItemRepository;
     private final BookingRepository bookingRepository;
     private final CustomerRepository customerRepo;

@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import jakarta.servlet.http.Cookie;
+
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -43,56 +45,88 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String requestHeader = request.getHeader("Authorization");
         logger.info(requestHeader);
-        String token = null;
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+    filterChain.doFilter(request, response);
+    return;
+}
 
-//        logger.info(" Header :  {}", request);
-        String username = null;
-//        String token = null;
-        if (requestHeader != null && requestHeader.startsWith("Bearer ")) {
-            token = requestHeader.substring(7);
-            logger.info("Extracted JWT Token: {}", token);
-            try {
-                username = this.jwtHelper.getUsernameFromToken(token);
-                logger.info("Extracted Username (email) from Token: {}", username);
-            } catch (ExpiredJwtException e) {
-                logger.warn("JWT expired", e);
-            } catch (MalformedJwtException e) {
-                logger.warn("Invalid JWT", e);
-            } catch (Exception e) {
-                logger.error("JWT parsing error", e);
-            }
-        } else {
-            logger.warn("Authorization header missing or invalid. Found: {}", requestHeader);
+//         String token = null;
+
+
+
+// //        logger.info(" Header :  {}", request);
+//         String username = null;
+// //        String token = null;
+//         if (requestHeader != null && requestHeader.startsWith("Bearer ")) {
+//             token = requestHeader.substring(7);
+//             logger.info("Extracted JWT Token: {}", token);
+//             try {
+//                 username = this.jwtHelper.getUsernameFromToken(token);
+//                 logger.info("Extracted Username (email) from Token: {}", username);
+//             } catch (ExpiredJwtException e) {
+//                 logger.warn("JWT expired", e);
+//             } catch (MalformedJwtException e) {
+//                 logger.warn("Invalid JWT", e);
+//             } catch (Exception e) {
+//                 logger.error("JWT parsing error", e);
+//             }
+//         } else {
+//             logger.warn("Authorization header missing or invalid. Found: {}", requestHeader);
+//         }
+
+
+//         //
+//         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+
+//             //fetch user detail from username
+//             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+//             // 👇 Add this line to see what roles/authorities Spring thinks the user has
+//             logger.info("User Authorities: {}", userDetails.getAuthorities());
+//             Boolean validateToken = this.jwtHelper.validateToken(token, userDetails);
+//             logger.info("Token validation result: {}", validateToken);
+//             if (validateToken) {
+
+//                 //set the authentication
+//                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+//                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
+
+//             } else {
+//                 logger.info("Validation fails !!");
+//             }
+
+
+//         }
+//         logger.info("Authentication set in context: {}", SecurityContextHolder.getContext().getAuthentication());
+
+//         filterChain.doFilter(request, response); //doubt hai
+String token = null;
+
+if (request.getCookies() != null) {
+    for (Cookie cookie : request.getCookies()) {
+        if ("accessToken".equals(cookie.getName())) {
+            token = cookie.getValue();
         }
+    }
+}
 
+if (token != null) {
+    String username = jwtHelper.getUsernameFromToken(token);
+    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-        //
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+    if (jwtHelper.isTokenValid(token, userDetails)) {
+        UsernamePasswordAuthenticationToken auth =
+            new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities()
+            );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+}
 
+filterChain.doFilter(request, response);
 
-            //fetch user detail from username
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-            // 👇 Add this line to see what roles/authorities Spring thinks the user has
-            logger.info("User Authorities: {}", userDetails.getAuthorities());
-            Boolean validateToken = this.jwtHelper.validateToken(token, userDetails);
-            logger.info("Token validation result: {}", validateToken);
-            if (validateToken) {
-
-                //set the authentication
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-
-
-            } else {
-                logger.info("Validation fails !!");
-            }
-
-
-        }
-        logger.info("Authentication set in context: {}", SecurityContextHolder.getContext().getAuthentication());
-
-        filterChain.doFilter(request, response); //doubt hai
 
 
     }

@@ -8,91 +8,117 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const [clicked, setClicked] = useState(false);
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+    setClicked(true);
+  
     try {
+      // 1. Call LOGIN endpoint (not create)
       const res = await fetch("http://localhost:8080/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }), // backend expects email
+        body: JSON.stringify({ email, password }),
+        credentials: "include", // 🔥 VERY IMPORTANT
       });
-
+  
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(text || "Login failed. Please try again.");
+        throw new Error(text || "Login failed");
       }
-
-      const data = await res.json();
-      console.log("Login successful:", data);
-
-      if (data.token) {
-        const user = {
-          username: data.username,
-          role: data.role,
-          email: data.email,
-        };
-        login(user, data.token); // ✅ sets user & token in AuthContext
-
-        switch (user.role) {
-          case "ROLE_CUSTOMER":
-            navigate("/book");
-            break;
-          case "ROLE_ADMIN":
-            navigate("/admin");
-            break;
-          case "ROLE_WAITER":
-            navigate("/waiterdashboard");
-          case "ROLE_CHEF":
-            navigate("/chefdashboard");
-            break;
-          default:
-            navigate("/"); // fallback
-        }
-      } else {
-        alert("No token received. Please try again.");
+  
+      // 2. Fetch authenticated user
+      const meRes = await fetch("http://localhost:8080/auth/me", {
+        credentials: "include",
+      });
+  
+      if (!meRes.ok) {
+        throw new Error("Failed to fetch user info");
       }
+  
+      const userData = await meRes.json();
+  
+      // 3. Save user in AuthContext
+      login({
+        email: userData.email,
+        role: userData.roles[0]?.authority,
+      });
+  
+      // 4. Redirect based on role
+      switch (userData.roles[0]?.authority) {
+        case "ROLE_ADMIN":
+          navigate("/admin");
+          break;
+        case "ROLE_CHEF":
+          navigate("/chefdashboard");
+          break;
+        case "ROLE_WAITER":
+          navigate("/waiterdashboard");
+          break;
+        default:
+          navigate("/"); // customer
+      }
+  
     } catch (err) {
-      console.error("Login failed:", err.message);
-      alert(`Login failed: ${err.message}`);
+      alert(err.message);
+    } finally {
+      setClicked(false);
     }
   };
+  
+
+  
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-[#1c140f] text-white">
-      <form
-        onSubmit={handleLogin}
-        className="bg-[#2a1f16] p-10 rounded-lg shadow-lg w-[400px]"
-      >
-        <h2 className="text-3xl font-bold mb-6">Login</h2>
-        <input
-          type="text"
-          placeholder="Email"
-          className="w-full p-3 mb-4 rounded bg-gray-800"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full p-3 mb-6 rounded bg-gray-800"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button className="bg-white text-black w-full py-3 rounded font-semibold hover:bg-gray-200 transition">
-          Login
-        </button>
-        <p className="mt-4 text-center text-sm">
+    <div className="coffee-page flex items-center justify-center text-white">
+      <div className="coffee-section-card max-w-md w-full px-8 py-10 shadow-lg-amber">
+        <h2 className="text-3xl font-bold mb-2 text-gradient-amber text-center">
+          Welcome Back
+        </h2>
+        <p className="text-sm text-amber-100/80 mb-8 text-center">
+          Sign in to keep your favourite brews and bookings in sync.
+        </p>
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="space-y-2">
+            <label className="text-xs uppercase tracking-wide text-amber-200/80">
+              Email
+            </label>
+            <input
+              type="text"
+              placeholder="you@coffeebite.com"
+              className="w-full p-3"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs uppercase tracking-wide text-amber-200/80">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="Your secret brew"
+              className="w-full p-3"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <button className="w-full mt-2 bg-gradient-to-r from-[#f5e6d3] via-[#f2d3ab] to-[#e0b386] text-[#2b1810] font-semibold py-3 rounded-xl hover:from-[#f8f0e5] hover:via-[#f4d9b8] hover:to-[#e9bc8e] transition-all duration-300 shadow-md-amber hover:shadow-lg-amber">
+            Login
+          </button>
+        </form>
+        <p className="mt-6 text-center text-sm text-amber-100/80">
           Don’t have an account?{" "}
           <Link
             to="/signup"
-            className="text-yellow-400 hover:underline font-medium"
+            className="font-semibold text-gradient-amber hover:opacity-90"
           >
             Sign Up
           </Link>
         </p>
-      </form>
+      </div>
     </div>
   );
 };

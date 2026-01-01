@@ -62,71 +62,116 @@ const TableBooking = () => {
   const filteredTables = tables.filter((t) => t.seatingCapacity >= partySize);
 
   return (
-    <div className="bg-[#1c140f] min-h-screen text-white p-10">
-      <div className="flex justify-between items-center mb-10">
-        <h2 className="text-4xl font-bold">Book a Table</h2>
-        <button
-          onClick={() => navigate("/")}
-          className="border border-white px-4 py-2 rounded hover:bg-white hover:text-black"
-        >
-          ⬅ Back
-        </button>
+    <div className="coffee-page-split text-white">
+      {/* Left: copy + form */}
+      <div className="space-y-8 flex flex-col justify-between">
+        <div className="coffee-section-card px-8 py-8 shadow-md-amber">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gradient-amber">
+                Book a Cozy Corner
+              </h2>
+              <p className="mt-2 text-amber-100/80 text-sm md:text-base max-w-md">
+                Reserve the perfect table for your next coffee catch-up, study
+                session or team meeting.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/")}
+              className="text-sm px-4 py-2 rounded-full border border-[rgba(245,230,211,0.4)] hover:bg-[rgba(245,230,211,0.08)] transition-colors"
+            >
+              ⬅ Back
+            </button>
+          </div>
+
+          {/* Form section */}
+          <div className="space-y-6">
+            {/* Date */}
+            <div className="space-y-2">
+              <h3 className="text-xs uppercase tracking-wide text-amber-200/80">
+                Select Date
+              </h3>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full p-3"
+              />
+            </div>
+
+            {/* Time */}
+            <div className="space-y-2">
+              <h3 className="text-xs uppercase tracking-wide text-amber-200/80">
+                Select Time Slot
+              </h3>
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full p-3"
+              />
+            </div>
+
+            {/* Party Size */}
+            <div className="space-y-2">
+              <h3 className="text-xs uppercase tracking-wide text-amber-200/80">
+                Party Size
+              </h3>
+              <input
+                type="number"
+                min="1"
+                value={partySize}
+                onChange={(e) => setPartySize(Number(e.target.value))}
+                className="w-full p-3"
+                placeholder="How many guests?"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Continue Button */}
+        <div className="flex mt-4">
+          <button
+            disabled={!selectedTable || !date || !time}
+            onClick={() =>
+              navigate("/booking-form", {
+                state: { table: selectedTable, date, time, start, end, partySize },
+              })
+            }
+            className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 ${
+              selectedTable && date && time
+                ? "bg-gradient-to-r from-[#f5e6d3] via-[#f2d3ab] to-[#e0b386] text-[#2b1810] hover:from-[#f8f0e5] hover:via-[#f4d9b8] hover:to-[#e9bc8e] shadow-md-amber hover:shadow-lg-amber"
+                : "bg-gray-600/50 cursor-not-allowed text-gray-300"
+            }`}
+          >
+            Continue
+          </button>
+        </div>
       </div>
 
-      {/* Form section */}
-      <div className="max-w-xl space-y-6">
-        {/* Date */}
-        <div className="flex items-center space-x-4">
-          <h3 className="w-40">Select Date</h3>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="p-3 rounded bg-gray-800 flex-1"
-          />
-        </div>
-
-        {/* Time */}
-        <div className="flex items-center space-x-4">
-          <h3 className="w-40">Select Time Slot</h3>
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="p-3 rounded bg-gray-800 flex-1"
-          />
-        </div>
-
-        {/* Party Size */}
-        <div className="flex items-center space-x-4">
-          <h3 className="w-40">Select Party Size</h3>
-          <input
-            type="number"
-            min="1"
-            value={partySize}
-            onChange={(e) => setPartySize(Number(e.target.value))}
-            className="p-3 rounded bg-gray-800 flex-1"
-            placeholder="Party Size"
-          />
-        </div>
-      </div>
-
-      {/* Display tables / messages */}
-      <div className="max-w-2xl  mt-10">
+      {/* Right: tables grid / state */}
+      <div className="coffee-section-card px-6 py-8 shadow-md-amber">
+        <h3 className="text-lg font-semibold mb-4 flex items-center justify-between">
+          Available Tables
+          <span className="text-xs font-normal text-amber-200/80">
+            {partySize} {partySize > 1 ? "guests" : "guest"}
+          </span>
+        </h3>
         {!date || !time ? (
-          <p className="text-gray-400 mb-4">
-            Please select a date and time to see available tables.
+          <p className="text-amber-100/70 mb-4 text-sm">
+            Choose a date and time to see which tables are free.
           </p>
         ) : loading ? (
-          <p className="text-gray-400 mb-4 ">
-            Loading available tables...
+          <p className="text-amber-100/70 mb-4 text-sm">
+            Brewing availability for your slot...
           </p>
         ) : error ? (
-          <p className="text-red-500 mb-4 ">{error}</p>
+          <p className="text-red-400 mb-4 text-sm">{error}</p>
         ) : filteredTables.length === 0 ? (
-          <p className="text-gray-400 mb-4">
+          <p className="text-amber-100/70 mb-4 text-sm">
             No tables available for this time slot for {partySize}{" "}
-            {partySize > 1 ? "people" : "person"}.
+            {partySize > 1 ? "people" : "person"}. Try a different time or reduce
+            party size.
           </p>
         ) : (
           <TableGrid
@@ -143,25 +188,6 @@ const TableBooking = () => {
             }}
           />
         )}
-      </div>
-
-      {/* Continue Button */}
-      <div className="flex">
-        <button
-          disabled={!selectedTable || !date || !time}
-          onClick={() =>
-            navigate("/booking-form", {
-              state: { table: selectedTable, date, time, start, end, partySize },
-            })
-          }
-          className={`mt-8 px-8 py-3 rounded font-semibold ${
-            selectedTable && date && time
-              ? "bg-yellow-400 text-black hover:bg-yellow-500"
-              : "bg-gray-500 cursor-not-allowed"
-          }`}
-        >
-          Continue
-        </button>
       </div>
     </div>
   );

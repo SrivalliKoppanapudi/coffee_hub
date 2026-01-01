@@ -1,5 +1,7 @@
-package com.javabite.code.coffeehub.repository;
+package com.javabite.code.coffeehub.repo;
 import com.javabite.code.coffeehub.entity.OrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long>
-{}
+{
+
+}
