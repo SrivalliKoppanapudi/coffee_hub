@@ -9,4 +9,6 @@ public interface UserRepo extends JpaRepository<UserEnitiy,Long> {
 
     public Optional<UserEnitiy> findByEmail(String email);
 
+    public Optional<UserEnitiy> findByVerificationToken(String token);
+
 }

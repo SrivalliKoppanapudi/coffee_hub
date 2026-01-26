@@ -27,10 +27,16 @@ public class UserEnitiy implements UserDetails {
         private String email;
         private String password;
 
+        private String verificationToken;
+        private boolean isVerified=false;
+
+
 
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+
         @Override
         public Collection<? extends GrantedAuthority> getAuthorities() {
                 return null;

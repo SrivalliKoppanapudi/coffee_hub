@@ -16,7 +16,6 @@ export default function OrderConfirmation() {
         setLoading(true);
         const data = await api(`/orders/${orderId}`, {
           method: "GET",
-          token: localStorage.getItem("token"),
         });
         setOrder(data);
       } catch (err) {

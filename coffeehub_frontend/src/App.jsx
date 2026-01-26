@@ -24,6 +24,7 @@ import MenuPage from "./pages/MenuPage";
 import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast";
 import PaymentConfirmationPage from "./pages/PaymentConfirmationPage";
+import Profile from "./pages/Profile";
 
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -97,6 +98,7 @@ function App() {
 
           <Route path="/confirmation/:orderId" element={<PaymentConfirmationPage />} />
 <Route path="/payment/:orderId" element={<Payment />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </Router>
       </CartProvider>

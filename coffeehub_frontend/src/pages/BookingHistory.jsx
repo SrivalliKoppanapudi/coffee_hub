@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import BookedItem from "../components/BookedItem";
 
 const BookingHistory = () => {
-  const { token } = useContext(AuthContext); // assuming AuthContext provides token
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,7 +13,7 @@ const BookingHistory = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const res = await api("/api/bookings/me", { token });
+        const res = await api("/api/bookings/me");
         setBookings(res);
       } catch (err) {
         console.error("Failed to load bookings:", err);
@@ -23,13 +22,12 @@ const BookingHistory = () => {
       }
     };
     fetchBookings();
-  }, [token]);
+  }, []);
 
   const cancelBooking = async (bookingId) => {
     try {
       await api(`/api/bookings/${bookingId}/cancel`, {
         method: "POST",
-        token,
       });
       setBookings(bookings.filter((b) => b.id !== bookingId));
     } catch (err) {

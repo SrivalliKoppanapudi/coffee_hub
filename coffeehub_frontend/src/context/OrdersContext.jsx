@@ -1,17 +1,15 @@
 // src/context/OrdersContext.jsx
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import { api } from "../utils/api";
-import { AuthContext } from "./AuthContext";
 
 export const OrdersContext = createContext();
 
 export const OrdersProvider = ({ children }) => {
-  const { token } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
 
   const fetchOrders = async () => {
     try {
-      const data = await api("/orders", { token });
+      const data = await api("/orders");
       setOrders(data);
     } catch (err) {
       console.error(err.message);
@@ -22,7 +20,6 @@ export const OrdersProvider = ({ children }) => {
     try {
       const updated = await api(`/orders/${orderId}/status?status=${status}`, {
         method: "PUT",
-        token,
       });
       setOrders((prev) =>
         prev.map((o) => (o.id === updated.id ? updated : o))

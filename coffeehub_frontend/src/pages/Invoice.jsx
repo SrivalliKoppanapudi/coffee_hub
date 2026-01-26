@@ -17,7 +17,7 @@ export default function Invoice() {
 
       const blob = await api(`/invoices/${orderId}`, {
         method: "GET",
-        token: localStorage.getItem("token"),
+        responseType: "blob",
       });
 
       // Create a Blob and download

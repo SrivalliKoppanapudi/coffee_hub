@@ -17,9 +17,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.javabite.code.coffeehub.service.EmailService;
+import org.springframework.security.authentication.DisabledException;
+import java.util.UUID;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 @Service
 public class UserImp implements UserService {
@@ -27,8 +32,7 @@ public class UserImp implements UserService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    @Autowired
-    private UserRepo userRepository;
+   
 
     @Autowired
     private UserRepo userRepo;
@@ -36,9 +40,20 @@ public class UserImp implements UserService {
     private ModelMapper modelMapper;
     @Autowired
     private AuthConfig authConfig;
+
+
+    @Autowired
+    private EmailService emailService;
+
+   
+
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEnitiy user = userRepo.findByEmail(username).orElseThrow(()->new RuntimeException("User not found"));
+         if (!user.isVerified()) {
+    throw new DisabledException("Email not verified");
+}
         System.out.println("Retrived Data");
         System.out.println(user.getPassword()+"Retrived Password");
         System.out.println(user.getUsername());
@@ -65,8 +80,14 @@ public class UserImp implements UserService {
     public UserResponseDto createUser(UserRequestDto userRequestDto) {
         Optional<UserEnitiy> foundUser = this.userRepo.findByEmail(userRequestDto.getEmail());
         if (foundUser.isEmpty()) {
+            
             UserEnitiy user = this.userReqDtoToUserEntity(userRequestDto);
             user.setPassword(authConfig.passwordEncoder().encode(user.getPassword()));
+            user.setVerified(false);
+
+     String token = UUID.randomUUID().toString();
+     user.setVerificationToken(token);
+
             UserEnitiy createdUser = userRepo.save(user);
             // If CUSTOMER, also save into customers table
             if ("CUSTOMER".equalsIgnoreCase(createdUser.getRole().name())) {
@@ -77,6 +98,7 @@ public class UserImp implements UserService {
 
                 customerRepository.save(customer);
             }
+            emailService.sendVerificationEmail(user.getEmail(), token);
 
             return this.userEntityToUserRespDto(createdUser);
         } else {
@@ -85,6 +107,19 @@ public class UserImp implements UserService {
         }
     }
 
+
+@Override
+public boolean verifyMail(String token){
+     UserEnitiy user = userRepo.findByVerificationToken(token)
+            .orElseThrow(() -> new RuntimeException("Invalid verification token"));
+
+    user.setVerified(true);
+    user.setVerificationToken(null);
+    userRepo.save(user);
+
+    return true;//response entity belongs to controller layer
+    //service layer msut return data,entity,boolean
+}
 
     public UserEnitiy userReqDtoToUserEntity(UserRequestDto userReqDto) {
         UserEnitiy user = new UserEnitiy();
@@ -109,9 +144,9 @@ public class UserImp implements UserService {
 
     @Override
     public boolean deleteUser(Long id) {
-        return userRepository.findById(id)
+        return userRepo.findById(id)
                 .map(user -> {
-                    userRepository.delete(user);
+                    userRepo.delete(user);
                     return true;
                 })
                 .orElse(false);

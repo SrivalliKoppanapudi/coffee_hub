@@ -15,7 +15,6 @@ const statusColors = {
 
 const CustomerDashboard = () => {
   const [activeTab, setActiveTab] = useState("My orders");
-  const { token } = useContext(AuthContext);
 
   const [bookings, setBookings] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -25,8 +24,8 @@ const CustomerDashboard = () => {
   const fetchData = async () => {
     try {
       const [ordersRes, bookingsRes] = await Promise.all([
-        api("/api/orders/me", { token }),
-        api("/api/bookings/me", { token }),
+        api("/api/orders/me"),
+        api("/api/bookings/me"),
       ]);
       setOrders((ordersRes || []).sort((a, b) => new Date(b.placedAt) - new Date(a.placedAt)));
       setBookings(bookingsRes || []);
@@ -41,13 +40,12 @@ const CustomerDashboard = () => {
     fetchData(); // initial fetch
     const interval = setInterval(fetchData, 10000); // refresh every 10s
     return () => clearInterval(interval); // cleanup
-  }, [token]);
+  }, []);
 
   const cancelBooking = async (bookingId) => {
     try {
       await api(`/api/bookings/${bookingId}/cancel`, {
         method: "POST",
-        token,
       });
       setBookings(bookings.filter((b) => b.id !== bookingId));
     } catch (err) {

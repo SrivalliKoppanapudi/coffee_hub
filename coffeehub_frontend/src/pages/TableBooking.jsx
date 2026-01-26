@@ -1,8 +1,9 @@
 // src/pages/TableBooking.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import TableGrid from "../components/TableGrid";
 import { useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
+import { AuthContext } from "../context/AuthContext";
 
 const TableBooking = () => {
   const [selectedTable, setSelectedTable] = useState(null);
@@ -13,10 +14,10 @@ const TableBooking = () => {
   const [error, setError] = useState("");
   const [partySize, setPartySize] = useState(1);
   const navigate = useNavigate();
+const {user}=useContext(AuthContext)
 
-
-    const token=localStorage.getItem('token')
-    if (!token) {
+   
+    if (!user) {
       return <p>Please login to book table</p>;
     }
     

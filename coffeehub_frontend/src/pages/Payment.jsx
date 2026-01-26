@@ -24,11 +24,8 @@ export default function Payment() {
 
   useEffect(() => {
     const fetchOrder = async () => {
-      const token = localStorage.getItem("token");
       try {
-        const res = await api(`/api/orders/${orderId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await api(`/api/orders/${orderId}`);
         setOrder(res);
       } catch (err) {
         console.error("Fetch order error:", err);
@@ -45,10 +42,8 @@ export default function Payment() {
     setPaying(true);
 
     try {
-      const token = localStorage.getItem("token");
       const res = await api("/api/payments", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
         body: { orderId: order.id },
       });
 
@@ -78,7 +73,6 @@ export default function Payment() {
       if (paymentIntent.status === "succeeded") {
         await api(`/api/orders/${order.id}/markPaid`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     body: paymentIntent.id, // send Stripe intent id
   });
         toast.success("Payment successful!");

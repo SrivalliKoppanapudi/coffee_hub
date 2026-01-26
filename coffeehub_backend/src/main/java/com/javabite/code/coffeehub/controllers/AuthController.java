@@ -26,6 +26,15 @@ import java.util.Map;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Cookie;
+import com.javabite.code.coffeehub.repo.UserRepo;
+import com.javabite.code.coffeehub.service.EmailService;
+import com.javabite.code.coffeehub.entity.UserEnitiy;
+import java.util.UUID;
+import java.util.Optional;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+
+
 
 
 @RestController
@@ -42,6 +51,16 @@ public class AuthController {
     private AuthenticationManager manager;
     @Autowired
     private JwtHelper helper;
+
+    @Autowired
+    private UserRepo userRepo;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private EmailService emailService;
+
+
 
 
     @Autowired
@@ -92,48 +111,95 @@ public ResponseEntity<?> me() {
 }
 
 
-    @PostMapping("/create")
-public ResponseEntity<?> createUser(@RequestBody UserRequestDto userRequestDto,
-                                    HttpServletResponse response) {
+//     @PostMapping("/create")
+// public ResponseEntity<?> createUser(@RequestBody UserRequestDto userRequestDto,
+//                                     HttpServletResponse response) {
 
+//     try {
+//         // 1. Create user
+//         UserResponseDto userResponseDto = userService.createUser(userRequestDto);
+
+//         // 2. Load user details
+//         UserDetails userDetails =
+//                 userDetailsService.loadUserByUsername(userResponseDto.getEmail());
+
+//         // 3. Generate tokens
+//         String accessToken = helper.generateAccessToken(userDetails);
+//         String refreshToken = helper.generateRefreshToken(userDetails);
+
+//         // 4. Store Access Token in HttpOnly cookie
+//         Cookie accessCookie = new Cookie("accessToken", accessToken);
+//         accessCookie.setHttpOnly(true);
+//         accessCookie.setSecure(false); // true in production (HTTPS)
+//         accessCookie.setPath("/");
+//         accessCookie.setMaxAge(15 * 60); // 15 minutes
+
+//         // 5. Store Refresh Token in HttpOnly cookie
+//         Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
+//         refreshCookie.setHttpOnly(true);
+//         refreshCookie.setSecure(false);
+//         refreshCookie.setPath("/auth/refresh");
+//         refreshCookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+
+//         response.addCookie(accessCookie);
+//         response.addCookie(refreshCookie);
+
+//         // 6. Return success (NO TOKEN IN BODY)
+//         return ResponseEntity.status(HttpStatus.CREATED)
+//                 .body("User registered and logged in successfully");
+
+//     } catch (UserAlreadyExistsException ex) {
+//         return ResponseEntity.status(HttpStatus.CONFLICT)
+//                 .body(new ErrorResponseDto("User already exists"));
+//     }
+// }
+
+@PostMapping("/create")
+public ResponseEntity<?> register(@RequestBody UserRequestDto request) {
+
+    // if (userRepo.findByEmail(request.getEmail()).isPresent()) {
+    //     return ResponseEntity.badRequest().body("Email already exists");
+    // }
+
+    // UserEnitiy user = userService.userReqDtoToUserEntity(request);
+    // user.setEmail(request.getEmail());
+    // user.setPassword(passwordEncoder.encode(request.getPassword()));
+    // user.setVerified(false);
+
+    // String token = UUID.randomUUID().toString();
+    // user.setVerificationToken(token);
+
+    // userRepo.save(user);
+
+    
+
+    try{
+         userService.createUser(request);
+
+
+
+}
+catch(Exception e){
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending verification email please sign up again");
+}
+return ResponseEntity.ok("Registration successful. Please verify your email.");
+}
+
+
+
+@GetMapping("/verify")
+public ResponseEntity<?> verifyEmail(@RequestParam String token) {
     try {
-        // 1. Create user
-        UserResponseDto userResponseDto = userService.createUser(userRequestDto);
-
-        // 2. Load user details
-        UserDetails userDetails =
-                userDetailsService.loadUserByUsername(userResponseDto.getEmail());
-
-        // 3. Generate tokens
-        String accessToken = helper.generateAccessToken(userDetails);
-        String refreshToken = helper.generateRefreshToken(userDetails);
-
-        // 4. Store Access Token in HttpOnly cookie
-        Cookie accessCookie = new Cookie("accessToken", accessToken);
-        accessCookie.setHttpOnly(true);
-        accessCookie.setSecure(false); // true in production (HTTPS)
-        accessCookie.setPath("/");
-        accessCookie.setMaxAge(15 * 60); // 15 minutes
-
-        // 5. Store Refresh Token in HttpOnly cookie
-        Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(false);
-        refreshCookie.setPath("/auth/refresh");
-        refreshCookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
-
-        response.addCookie(accessCookie);
-        response.addCookie(refreshCookie);
-
-        // 6. Return success (NO TOKEN IN BODY)
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("User registered and logged in successfully");
-
-    } catch (UserAlreadyExistsException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(new ErrorResponseDto("User already exists"));
+        userService.verifyMail(token);
+        return ResponseEntity.ok("Email verified successfully! You can now login.");
+    } catch (Exception e) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body("Invalid or expired verification link");
     }
 }
+
+
 
 
     // @PostMapping("/login")

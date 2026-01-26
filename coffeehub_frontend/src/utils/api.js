@@ -10,25 +10,52 @@ function buildQuery(params) {
     .join("&");
   return query ? `?${query}` : "";
 }
+async function refreshToken() {
+  const res = await fetch("http://localhost:8080/auth/refresh", {
+    method: "POST",
+    credentials: "include", // 🔥 required
+  });
+
+  return res.ok;
+}
+
 
 export const api = async (
   path,
-  { method = "GET", token = localStorage.getItem("token"), body, params } = {}
+  { method = "GET", body, params, responseType = "json" } = {}
 ) => {
   const headers = {
     "Content-Type": "application/json",
     Accept: "application/json",
   };
-  console.log(token);
-  if (token) headers.Authorization=`Bearer ${token}`;
 
   const url = `${API_BASE}${path}${buildQuery(params)}`;
 
   const res = await fetch(url, {
     method,
     headers,
+    credentials: "include", // 🔥 Send http-only cookies
     body: body ? JSON.stringify(body) : undefined,
   });
+
+
+  if (res.status === 401 || res.status === 403){
+    const refreshed=await refreshToken();
+    if (refreshed){
+      return await api(path, { method, body, params, responseType });
+    }else{
+      throw new Error("Session expired please login again");
+    }
+  }
+
+
+  if (responseType === "blob") {
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || "Request failed");
+    }
+    return await res.blob();
+  }
 
   const text = await res.text();
   let data = null;

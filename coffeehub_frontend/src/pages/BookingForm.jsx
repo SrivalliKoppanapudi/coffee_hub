@@ -35,17 +35,12 @@ const BookingForm = () => {
     try {
       const booking = await api("/api/bookings/book", {
         method: "POST",
-        headers: {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer " + localStorage.getItem("token")
-  },
         body: {
           tableId: table.id,
           bookingDatetime: `${form.date}T${form.time}:00`,
           durationHours: 2,
           partySize: form.partySize,
           specialRequests: form.requests,
-          
         },
       });
 
